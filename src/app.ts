@@ -12,7 +12,7 @@ function createApp() {
     app.use(cors({
         origin: '*',  // Permite qualquer origem
         methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type'],
+        allowedHeaders: ['Content-Type', 'Authorization'],  // Cabeçalhos permitidos
     }));
 
     // Suas rotas
