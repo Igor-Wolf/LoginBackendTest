@@ -465,6 +465,15 @@ var autenticateUser = (value) => __async(void 0, null, function* () {
   }
   return;
 });
+var autenticateUserSimple = (value) => __async(void 0, null, function* () {
+  const collection = yield connectDatabase();
+  const filter = { user: value };
+  const result = yield collection.findOne(filter);
+  if (result) {
+    return result;
+  }
+  return;
+});
 var insertUser = (value) => __async(void 0, null, function* () {
   const collection = yield connectDatabase();
   const filter = { user: value.user };
@@ -524,6 +533,18 @@ var getProtegidoService = (bodyValue) => __async(void 0, null, function* () {
   }
   return response;
 });
+var getMyAcountService = (bodyValue) => __async(void 0, null, function* () {
+  let response = null;
+  let data = null;
+  data = yield auth(bodyValue);
+  if (data && typeof data !== "string") {
+    const fullData = yield autenticateUserSimple(data.user);
+    response = yield ok(fullData);
+  } else {
+    response = yield noContent();
+  }
+  return response;
+});
 var createUserService = (bodyValue) => __async(void 0, null, function* () {
   const data = yield insertUser(bodyValue);
   let response = null;
@@ -565,6 +586,11 @@ var getProtegido = (req, res) => __async(void 0, null, function* () {
   const response = yield getProtegidoService(authHeader);
   res.status(response.statusCode).json(response.body);
 });
+var getMyAcount = (req, res) => __async(void 0, null, function* () {
+  const authHeader = req.headers.authorization;
+  const response = yield getMyAcountService(authHeader);
+  res.status(response.statusCode).json(response.body);
+});
 var createUser = (req, res) => __async(void 0, null, function* () {
   const bodyValue = req.body;
   const response = yield createUserService(bodyValue);
@@ -587,6 +613,7 @@ var updateUser = (req, res) => __async(void 0, null, function* () {
 // src/routes.ts
 var router = (0, import_express.Router)();
 router.get("/login/protected", getProtegido);
+router.get("/login/myAcount", getMyAcount);
 router.post("/login/create", createUser);
 router.post("/login/autentication", userAutentication);
 router.patch("/login/:user", updateUser);

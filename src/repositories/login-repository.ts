@@ -33,11 +33,6 @@ const closeDatabase = async () => {
 // -------------------------------------------------------- GET / READ
 
 
-
-
-
-
-
 export const autenticateUser = async (value: UserAutenticationModel): Promise<UserModel | undefined> => { 
 
   const collection = await connectDatabase();
@@ -53,7 +48,22 @@ export const autenticateUser = async (value: UserAutenticationModel): Promise<Us
 
   return 
 
+}
 
+export const autenticateUserSimple = async (value: String): Promise<UserModel | undefined> => { 
+
+  const collection = await connectDatabase();
+  const filter = { user: value };
+  const result = await collection.findOne(filter);
+
+
+  if (result) {
+    
+    return result;
+
+  } 
+
+  return 
 
 }
 

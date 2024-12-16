@@ -1,7 +1,7 @@
 import { response } from "express"
 import { badRequest, conflict, noContent, ok, unauthorized } from "../utils/http-helper"
 import { UserModel } from "../models/user-model"
-import { autenticateUser, findAndModifyUser, insertUser } from "../repositories/login-repository"
+import { autenticateUser, autenticateUserSimple, findAndModifyUser, insertUser } from "../repositories/login-repository"
 import { UserAutenticationModel } from "../models/user-autentication-model"
 
 import jwt from "jsonwebtoken"; /// gerar token
@@ -24,6 +24,29 @@ export const getProtegidoService = async (bodyValue: string | undefined) => {
     if (data){
         
         response = await ok(data)
+        
+
+    } else{
+        
+
+        response = await noContent()
+
+    }
+    
+    return response
+
+}
+export const getMyAcountService = async (bodyValue: string | undefined) => {
+
+    let response = null
+    let data = null   
+
+    data = await auth(bodyValue) /// verificação do token
+    
+    if (data && typeof data !== "string") {
+        
+        const fullData = await autenticateUserSimple(data.user)
+        response = await ok(fullData)
         
 
     } else{

@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { createUserService, getProtegidoService, updateUserService, userAutenticationService } from "../services/login-service";
+import { createUserService, getMyAcountService, getProtegidoService, updateUserService, userAutenticationService } from "../services/login-service";
 
 
 
@@ -15,6 +15,21 @@ export const getProtegido = async (req: Request, res: Response) => {
 
 
 }
+
+export const getMyAcount = async (req: Request, res: Response) => {
+  
+  const authHeader = req.headers.authorization
+  
+
+  const response = await getMyAcountService(authHeader)
+  res.status(response.statusCode).json(response.body)
+
+
+}
+
+
+
+
 
 
 
