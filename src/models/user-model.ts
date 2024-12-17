@@ -5,6 +5,7 @@ export interface UserModel{
     _id: ObjectId | null
     name: string;
     user: string;
+    email: string;
     birthday: Date;
     passwordHash: string;
     createdAt: Date;
