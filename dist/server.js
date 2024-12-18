@@ -443,6 +443,7 @@ var conflict = () => __async(void 0, null, function* () {
 // src/repositories/login-repository.ts
 var import_mongodb = require("mongodb");
 var import_dotenv = __toESM(require_main());
+var import_bcrypt = __toESM(require("bcrypt"));
 import_dotenv.default.config();
 var uri = process.env.MONGO_URI;
 var client = new import_mongodb.MongoClient(uri);
@@ -460,7 +461,12 @@ var autenticateUser = (value) => __async(void 0, null, function* () {
   const collection = yield connectDatabase();
   const filter = { user: value.user };
   const result = yield collection.findOne(filter);
-  if (result && value.passwordHash === result.passwordHash) {
+  let isMatch = null;
+  if (result) {
+    isMatch = yield import_bcrypt.default.compare(value.passwordHash, result.passwordHash);
+    console.log(value.passwordHash, result.passwordHash);
+  }
+  if (result && isMatch) {
     return result;
   }
   return;
@@ -521,6 +527,14 @@ var auth = (data) => __async(void 0, null, function* () {
   }
 });
 
+// src/utils/hashedPass.ts
+var import_bcrypt2 = __toESM(require("bcrypt"));
+var hashedPass = (data) => __async(void 0, null, function* () {
+  const saltRounds = 10;
+  const hashedPass2 = yield import_bcrypt2.default.hash(data, saltRounds);
+  return hashedPass2;
+});
+
 // src/services/login-service.ts
 var getProtegidoService = (bodyValue) => __async(void 0, null, function* () {
   let response = null;
@@ -546,6 +560,7 @@ var getMyAcountService = (bodyValue) => __async(void 0, null, function* () {
   return response;
 });
 var createUserService = (bodyValue) => __async(void 0, null, function* () {
+  bodyValue.passwordHash = yield hashedPass(bodyValue.passwordHash);
   const data = yield insertUser(bodyValue);
   let response = null;
   if (data) {
@@ -572,6 +587,7 @@ var updateUserService = (user, bodyValue, authHeader) => __async(void 0, null, f
   const decoded = yield auth(authHeader);
   let response = null;
   if (decoded) {
+    bodyValue.passwordHash = yield hashedPass(bodyValue.passwordHash);
     const data = yield findAndModifyUser(user, bodyValue);
     response = yield ok(data);
   } else {
@@ -605,7 +621,6 @@ var updateUser = (req, res) => __async(void 0, null, function* () {
   const authHeader = req.headers.authorization;
   const bodyValue = req.body;
   const user = req.params.user;
-  console.log("entrou");
   const response = yield updateUserService(user, bodyValue, authHeader);
   res.status(response.statusCode).json(response.body);
 });

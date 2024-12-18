@@ -7,6 +7,7 @@ import { UserAutenticationModel } from "../models/user-autentication-model"
 import jwt from "jsonwebtoken"; /// gerar token
 import dotenv from "dotenv";
 import { auth } from "../utils/auth"
+import { hashedPass } from "../utils/hashedPass"
 
 
 
@@ -63,6 +64,9 @@ export const getMyAcountService = async (bodyValue: string | undefined) => {
 
 
 export const createUserService = async (bodyValue: UserModel) => {
+    
+    // criptografando a senha
+    bodyValue.passwordHash =  await hashedPass(bodyValue.passwordHash)
 
     const data = await insertUser(bodyValue)
     let response = null
@@ -85,8 +89,7 @@ export const createUserService = async (bodyValue: UserModel) => {
 
 export const userAutenticationService = async (bodyValue: UserAutenticationModel) => {
 
-
-    
+      
     const data = await autenticateUser(bodyValue)
     const secret = process.env.SECRET_KEY
     let response = null
@@ -115,10 +118,12 @@ export const updateUserService = async (user: string, bodyValue: UserModel, auth
 
     const decoded = await auth(authHeader)
     let response = null
-    
+      
 
     if (decoded){
         
+        // criptografando a senha
+        bodyValue.passwordHash =  await hashedPass(bodyValue.passwordHash)
         const data  = await findAndModifyUser(user, bodyValue)
         
         response = await ok(data)

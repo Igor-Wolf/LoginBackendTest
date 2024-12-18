@@ -68,10 +68,7 @@ export const updateUser = async (req: Request, res: Response) => {
   const bodyValue = req.body
   const user = req.params.user
 
-  console.log("entrou")
-
-
-  const response = await updateUserService(user, bodyValue, authHeader)
+    const response = await updateUserService(user, bodyValue, authHeader)
   res.status(response.statusCode).json(response.body)
 
 

@@ -2,6 +2,10 @@ import { UserModel } from "../models/user-model";
 import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 import { UserAutenticationModel } from "../models/user-autentication-model";
+import bcrypt from 'bcrypt'
+
+
+
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -38,9 +42,16 @@ export const autenticateUser = async (value: UserAutenticationModel): Promise<Us
   const collection = await connectDatabase();
   const filter = { user: value.user };
   const result = await collection.findOne(filter);
+  let isMatch = null
+  
+
+  if (result) {
+    isMatch = await bcrypt.compare(value.passwordHash, result.passwordHash);
+    console.log(value.passwordHash, result.passwordHash)
+  }
 
 
-  if (result && value.passwordHash === result.passwordHash) {
+  if (result && isMatch) {
     
     return result;
 
