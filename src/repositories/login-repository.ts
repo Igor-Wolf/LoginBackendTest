@@ -3,6 +3,7 @@ import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 import { UserAutenticationModel } from "../models/user-autentication-model";
 import bcrypt from 'bcrypt'
+import { hashedPass } from "../utils/hashedPass";
 
 
 
@@ -123,6 +124,14 @@ export const findAndModifyUser = async (user: string, body: UserModel) => {
   try {
     const filter = { user: user };
     const updatedUser = { ...body, user: user };
+
+    if (updatedUser && updatedUser.passwordHash !== body.passwordHash) {
+      
+      // criptografando a senha
+      updatedUser.passwordHash =  await hashedPass(body.passwordHash)
+    }
+
+
     const result = await collection.replaceOne(filter, updatedUser);
 
     if (result.matchedCount === 1) {

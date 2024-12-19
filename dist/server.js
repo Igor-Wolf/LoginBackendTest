@@ -443,7 +443,17 @@ var conflict = () => __async(void 0, null, function* () {
 // src/repositories/login-repository.ts
 var import_mongodb = require("mongodb");
 var import_dotenv = __toESM(require_main());
+var import_bcrypt2 = __toESM(require("bcrypt"));
+
+// src/utils/hashedPass.ts
 var import_bcrypt = __toESM(require("bcrypt"));
+var hashedPass = (data) => __async(void 0, null, function* () {
+  const saltRounds = 10;
+  const hashedPass2 = yield import_bcrypt.default.hash(data, saltRounds);
+  return hashedPass2;
+});
+
+// src/repositories/login-repository.ts
 import_dotenv.default.config();
 var uri = process.env.MONGO_URI;
 var client = new import_mongodb.MongoClient(uri);
@@ -463,7 +473,7 @@ var autenticateUser = (value) => __async(void 0, null, function* () {
   const result = yield collection.findOne(filter);
   let isMatch = null;
   if (result) {
-    isMatch = yield import_bcrypt.default.compare(value.passwordHash, result.passwordHash);
+    isMatch = yield import_bcrypt2.default.compare(value.passwordHash, result.passwordHash);
     console.log(value.passwordHash, result.passwordHash);
   }
   if (result && isMatch) {
@@ -496,6 +506,9 @@ var findAndModifyUser = (user, body) => __async(void 0, null, function* () {
   try {
     const filter = { user };
     const updatedUser = __spreadProps(__spreadValues({}, body), { user });
+    if (updatedUser && updatedUser.passwordHash !== body.passwordHash) {
+      updatedUser.passwordHash = yield hashedPass(body.passwordHash);
+    }
     const result = yield collection.replaceOne(filter, updatedUser);
     if (result.matchedCount === 1) {
       return { message: "updated" };
@@ -525,14 +538,6 @@ var auth = (data) => __async(void 0, null, function* () {
     }
     return decoded;
   }
-});
-
-// src/utils/hashedPass.ts
-var import_bcrypt2 = __toESM(require("bcrypt"));
-var hashedPass = (data) => __async(void 0, null, function* () {
-  const saltRounds = 10;
-  const hashedPass2 = yield import_bcrypt2.default.hash(data, saltRounds);
-  return hashedPass2;
 });
 
 // src/services/login-service.ts
@@ -587,7 +592,6 @@ var updateUserService = (user, bodyValue, authHeader) => __async(void 0, null, f
   const decoded = yield auth(authHeader);
   let response = null;
   if (decoded) {
-    bodyValue.passwordHash = yield hashedPass(bodyValue.passwordHash);
     const data = yield findAndModifyUser(user, bodyValue);
     response = yield ok(data);
   } else {

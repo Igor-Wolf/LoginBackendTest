@@ -122,8 +122,7 @@ export const updateUserService = async (user: string, bodyValue: UserModel, auth
 
     if (decoded){
         
-        // criptografando a senha
-        bodyValue.passwordHash =  await hashedPass(bodyValue.passwordHash)
+        
         const data  = await findAndModifyUser(user, bodyValue)
         
         response = await ok(data)
