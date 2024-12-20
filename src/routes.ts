@@ -11,7 +11,7 @@ router.get("/login/myAcount" , getMyAcount)
 router.post("/login/create", createUser)
 router.post("/login/autentication", userAutentication)
 
-router.patch("/login/:user", updateUser)
+router.patch("/login/update/:user", updateUser)
 
 
 export default router

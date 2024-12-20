@@ -6,6 +6,7 @@ export interface UserModel{
     name: string;
     user: string;
     email: string;
+    lastEmail: string;
     birthday: Date;
     passwordHash: string;
     createdAt: Date;

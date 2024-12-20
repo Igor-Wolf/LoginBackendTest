@@ -118,29 +118,43 @@ export const insertUser = async (value: UserModel) => {
 // -------------------------------------------------------- UPDATE
 
 
-export const findAndModifyUser = async (user: string, body: UserModel) => {
+export const findAndModifyUser = async (user: string, body: UserModel, validEmail: boolean) => {
   const collection = await connectDatabase();
+  let result = null
   
   try {
     const filter = { user: user };
     const updatedUser = { ...body, user: user };
+    const search = await collection.findOne(filter);
 
-    if (updatedUser && updatedUser.passwordHash !== body.passwordHash) {
+    if (!validEmail) {
+      const filter = { email: body.email }
+      const search1 = await collection.findOne(filter);
+
+      if (!search1) {
+        updatedUser.lastEmail = body.email
+        validEmail = true
+        }
+    }
+
+    if (search && updatedUser.passwordHash !== search.passwordHash) {
       
       // criptografando a senha
       updatedUser.passwordHash =  await hashedPass(body.passwordHash)
     }
 
+    if (validEmail) {
+      
+      result = await collection.replaceOne(filter, updatedUser);
+    }
 
-    const result = await collection.replaceOne(filter, updatedUser);
-
-    if (result.matchedCount === 1) {
+    if (result && validEmail) {
       return { message: "updated" };
     } else {
-      return { message: "not found" };
+      return { message: "erro na criação email já existente" };
     }
   } catch (error) {
-    console.error("Error updating food:", error);
+    console.error("Error updating user:", error);
     return { message: "error", error: error.message };
   }
 };

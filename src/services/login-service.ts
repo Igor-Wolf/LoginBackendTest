@@ -64,6 +64,9 @@ export const getMyAcountService = async (bodyValue: string | undefined) => {
 
 
 export const createUserService = async (bodyValue: UserModel) => {
+
+
+
     
     // criptografando a senha
     bodyValue.passwordHash =  await hashedPass(bodyValue.passwordHash)
@@ -116,6 +119,8 @@ export const userAutenticationService = async (bodyValue: UserAutenticationModel
 
 export const updateUserService = async (user: string, bodyValue: UserModel, authHeader: string | undefined) => {
 
+    const validEmail = bodyValue.email === bodyValue.lastEmail ? true : false;
+
     const decoded = await auth(authHeader)
     let response = null
       
@@ -123,7 +128,7 @@ export const updateUserService = async (user: string, bodyValue: UserModel, auth
     if (decoded){
         
         
-        const data  = await findAndModifyUser(user, bodyValue)
+        const data  = await findAndModifyUser(user, bodyValue, validEmail)
         
         response = await ok(data)
         

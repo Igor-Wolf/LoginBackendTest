@@ -501,22 +501,34 @@ var insertUser = (value) => __async(void 0, null, function* () {
     return;
   }
 });
-var findAndModifyUser = (user, body) => __async(void 0, null, function* () {
+var findAndModifyUser = (user, body, validEmail) => __async(void 0, null, function* () {
   const collection = yield connectDatabase();
+  let result = null;
   try {
     const filter = { user };
     const updatedUser = __spreadProps(__spreadValues({}, body), { user });
-    if (updatedUser && updatedUser.passwordHash !== body.passwordHash) {
+    const search = yield collection.findOne(filter);
+    if (!validEmail) {
+      const filter2 = { email: body.email };
+      const search1 = yield collection.findOne(filter2);
+      if (!search1) {
+        updatedUser.lastEmail = body.email;
+        validEmail = true;
+      }
+    }
+    if (search && updatedUser.passwordHash !== search.passwordHash) {
       updatedUser.passwordHash = yield hashedPass(body.passwordHash);
     }
-    const result = yield collection.replaceOne(filter, updatedUser);
-    if (result.matchedCount === 1) {
+    if (validEmail) {
+      result = yield collection.replaceOne(filter, updatedUser);
+    }
+    if (result && validEmail) {
       return { message: "updated" };
     } else {
-      return { message: "not found" };
+      return { message: "erro na cria\xE7\xE3o email j\xE1 existente" };
     }
   } catch (error) {
-    console.error("Error updating food:", error);
+    console.error("Error updating user:", error);
     return { message: "error", error: error.message };
   }
 });
@@ -589,10 +601,11 @@ var userAutenticationService = (bodyValue) => __async(void 0, null, function* ()
   return response;
 });
 var updateUserService = (user, bodyValue, authHeader) => __async(void 0, null, function* () {
+  const validEmail = bodyValue.email === bodyValue.lastEmail ? true : false;
   const decoded = yield auth(authHeader);
   let response = null;
   if (decoded) {
-    const data = yield findAndModifyUser(user, bodyValue);
+    const data = yield findAndModifyUser(user, bodyValue, validEmail);
     response = yield ok(data);
   } else {
     response = yield badRequest();
@@ -635,7 +648,7 @@ router.get("/login/protected", getProtegido);
 router.get("/login/myAcount", getMyAcount);
 router.post("/login/create", createUser);
 router.post("/login/autentication", userAutentication);
-router.patch("/login/:user", updateUser);
+router.patch("/login/update/:user", updateUser);
 var routes_default = router;
 
 // src/app.ts
