@@ -95,7 +95,13 @@ export const insertUser = async (value: UserModel) => {
   const filter = { user: value.user };
   const result = await collection.findOne(filter);
 
-  if (!result) {
+  const filter2 = { email: value.email };
+  const result2 = await collection.findOne(filter2);
+
+
+
+
+  if (!result && !result2) {
     
     await collection.insertOne(value);
     return { message: "created" };

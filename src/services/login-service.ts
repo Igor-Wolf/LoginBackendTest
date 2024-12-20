@@ -65,8 +65,6 @@ export const getMyAcountService = async (bodyValue: string | undefined) => {
 
 export const createUserService = async (bodyValue: UserModel) => {
 
-
-
     
     // criptografando a senha
     bodyValue.passwordHash =  await hashedPass(bodyValue.passwordHash)

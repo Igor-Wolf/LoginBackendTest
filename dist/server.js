@@ -494,7 +494,9 @@ var insertUser = (value) => __async(void 0, null, function* () {
   const collection = yield connectDatabase();
   const filter = { user: value.user };
   const result = yield collection.findOne(filter);
-  if (!result) {
+  const filter2 = { email: value.email };
+  const result2 = yield collection.findOne(filter2);
+  if (!result && !result2) {
     yield collection.insertOne(value);
     return { message: "created" };
   } else {
