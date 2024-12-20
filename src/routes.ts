@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { createUser, getMyAcount, getProtegido, updateUser, userAutentication } from "./controllers/login-controller"
+import { createUser, deleteUser, getMyAcount, getProtegido, updateUser, userAutentication } from "./controllers/login-controller"
 
 
 const router = Router()
@@ -12,6 +12,8 @@ router.post("/login/create", createUser)
 router.post("/login/autentication", userAutentication)
 
 router.patch("/login/update/:user", updateUser)
+
+router.delete("/login/delete/:user", deleteUser)
 
 
 export default router

@@ -1,7 +1,7 @@
 import { response } from "express"
 import { badRequest, conflict, noContent, ok, unauthorized } from "../utils/http-helper"
 import { UserModel } from "../models/user-model"
-import { autenticateUser, autenticateUserSimple, findAndModifyUser, insertUser } from "../repositories/login-repository"
+import { autenticateUser, autenticateUserSimple, deleteUsers, findAndModifyUser, insertUser } from "../repositories/login-repository"
 import { UserAutenticationModel } from "../models/user-autentication-model"
 
 import jwt from "jsonwebtoken"; /// gerar token
@@ -141,17 +141,23 @@ export const updateUserService = async (user: string, bodyValue: UserModel, auth
     
     return response
 
+   
+}
 
+export const deleteUserService = async (user: string) => {
 
+    const data = await deleteUsers(user)
+    let response = null
 
+    if (data) {
+        response = await ok(data)
+    }
+    else {
+        
+        response = await badRequest()
+    }
 
+    return response
 
-
-
-
-
-    
-
-    
 
 }

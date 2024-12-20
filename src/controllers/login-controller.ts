@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { createUserService, getMyAcountService, getProtegidoService, updateUserService, userAutenticationService } from "../services/login-service";
+import { createUserService, deleteUserService, getMyAcountService, getProtegidoService, updateUserService, userAutenticationService } from "../services/login-service";
 
 
 
@@ -74,4 +74,14 @@ export const updateUser = async (req: Request, res: Response) => {
 
 
 
+}
+
+
+export const deleteUser = async (req: Request, res: Response) => {
+
+
+  const user = req.params.user
+
+  const response = await deleteUserService(user)
+  res.status(response.statusCode).json(response.body)
 }

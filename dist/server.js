@@ -503,6 +503,21 @@ var insertUser = (value) => __async(void 0, null, function* () {
     return;
   }
 });
+var deleteUsers = (user) => __async(void 0, null, function* () {
+  const collection = yield connectDatabase();
+  try {
+    const filter = { user };
+    const result = yield collection.deleteOne(filter);
+    if (result.deletedCount === 1) {
+      return { message: "deleted" };
+    } else {
+      return { message: "not found" };
+    }
+  } catch (error) {
+    console.error("Error deleting food:", error);
+    return { message: "error", error: error.message };
+  }
+});
 var findAndModifyUser = (user, body, validEmail) => __async(void 0, null, function* () {
   const collection = yield connectDatabase();
   let result = null;
@@ -614,6 +629,16 @@ var updateUserService = (user, bodyValue, authHeader) => __async(void 0, null, f
   }
   return response;
 });
+var deleteUserService = (user) => __async(void 0, null, function* () {
+  const data = yield deleteUsers(user);
+  let response = null;
+  if (data) {
+    response = yield ok(data);
+  } else {
+    response = yield badRequest();
+  }
+  return response;
+});
 
 // src/controllers/login-controller.ts
 var getProtegido = (req, res) => __async(void 0, null, function* () {
@@ -643,6 +668,11 @@ var updateUser = (req, res) => __async(void 0, null, function* () {
   const response = yield updateUserService(user, bodyValue, authHeader);
   res.status(response.statusCode).json(response.body);
 });
+var deleteUser = (req, res) => __async(void 0, null, function* () {
+  const user = req.params.user;
+  const response = yield deleteUserService(user);
+  res.status(response.statusCode).json(response.body);
+});
 
 // src/routes.ts
 var router = (0, import_express.Router)();
@@ -651,6 +681,7 @@ router.get("/login/myAcount", getMyAcount);
 router.post("/login/create", createUser);
 router.post("/login/autentication", userAutentication);
 router.patch("/login/update/:user", updateUser);
+router.delete("/login/delete/:user", deleteUser);
 var routes_default = router;
 
 // src/app.ts

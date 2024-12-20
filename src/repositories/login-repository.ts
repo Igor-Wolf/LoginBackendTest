@@ -120,6 +120,25 @@ export const insertUser = async (value: UserModel) => {
 // -------------------------------------------------------- DELETE
 
 
+export const deleteUsers = async (user: string) => {
+  const collection = await connectDatabase();
+
+  try {
+    const filter = { user: user };
+    const result = await collection.deleteOne(filter);
+
+    if (result.deletedCount === 1) {
+      return { message: "deleted" };
+    } else {
+      return { message: "not found" };
+    }
+  } catch (error) {
+    console.error("Error deleting food:", error);
+    return { message: "error", error: error.message };
+  }
+};
+
+
 
 // -------------------------------------------------------- UPDATE
 
