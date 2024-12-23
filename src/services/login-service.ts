@@ -44,6 +44,7 @@ export const forgotPassService = async (email: string | undefined) => {
     const secret = process.env.SECRET_KEY
 
     const verifyEmail = await veryfyEmailDatabase(email)
+    //testando implementar email
 
 
     
