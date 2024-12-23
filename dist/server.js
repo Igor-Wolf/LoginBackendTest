@@ -474,7 +474,6 @@ var autenticateUser = (value) => __async(void 0, null, function* () {
   let isMatch = null;
   if (result) {
     isMatch = yield import_bcrypt2.default.compare(value.passwordHash, result.passwordHash);
-    console.log(value.passwordHash, result.passwordHash);
   }
   if (result && isMatch) {
     return result;
@@ -484,6 +483,15 @@ var autenticateUser = (value) => __async(void 0, null, function* () {
 var autenticateUserSimple = (value) => __async(void 0, null, function* () {
   const collection = yield connectDatabase();
   const filter = { user: value };
+  const result = yield collection.findOne(filter);
+  if (result) {
+    return result;
+  }
+  return;
+});
+var veryfyEmailDatabase = (email) => __async(void 0, null, function* () {
+  const collection = yield connectDatabase();
+  const filter = { email };
   const result = yield collection.findOne(filter);
   if (result) {
     return result;
@@ -569,12 +577,142 @@ var auth = (data) => __async(void 0, null, function* () {
   }
 });
 
+// src/utils/forgotPassSender.ts
+var import_nodemailer = __toESM(require("nodemailer"));
+
+// src/utils/forgotPassHTML.ts
+var getPasswordResetEmail = (userName, resetLink) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recupera\xE7\xE3o de Senha</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            color: #333;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .footer {
+            background-color: #f4f4f4;
+            color: #666;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>Recupera\xE7\xE3o de Senha</h1>
+        </div>
+        <div class="content">
+            <p>Ol\xE1, <strong>${userName}</strong>,</p>
+            <p>Recebemos uma solicita\xE7\xE3o para redefinir sua senha. Clique no bot\xE3o abaixo para continuar: ${resetLink}</p>
+            <a href="${resetLink}" class="button">Redefinir Senha</a>
+            <p>Se voc\xEA n\xE3o solicitou essa altera\xE7\xE3o, ignore este e-mail.</p>
+        </div>
+        <div class="footer">
+            <p>Equipe do Seu Site</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+
+// src/utils/forgotPassSender.ts
+var transporter = import_nodemailer.default.createTransport({
+  service: "gmail",
+  // Substitua pelo serviço de e-mail que você utiliza (e.g., Outlook, Yahoo)
+  auth: {
+    user: "programadorigorrb@gmail.com",
+    // Seu endereço de e-mail
+    pass: process.env.EMAIL_PASS
+    // Sua senha ou App Password
+  },
+  tls: {
+    rejectUnauthorized: false
+    // Permitir certificados autoassinados
+  }
+});
+var sendEmail = (to, subject, text, user) => __async(void 0, null, function* () {
+  try {
+    const mailOptions = {
+      from: '"My games" <programadorigorrb@gmail.com>',
+      // Remetente
+      to,
+      // Destinatário
+      subject,
+      // Assunto
+      html: getPasswordResetEmail(user, text)
+      //text, // Texto do e-mail (pode adicionar HTML aqui também, com `html` em vez de `text`)
+    };
+    const info = yield transporter.sendMail(mailOptions);
+    return {
+      message: `E-mail enviado com sucesso:'`
+    };
+  } catch (error) {
+    return {
+      message: `Erro ao enviar e-mail: ${error}`
+    };
+  }
+});
+
 // src/services/login-service.ts
 var getProtegidoService = (bodyValue) => __async(void 0, null, function* () {
   let response = null;
   let data = null;
   data = yield auth(bodyValue);
   if (data) {
+    response = yield ok(data);
+  } else {
+    response = yield noContent();
+  }
+  return response;
+});
+var forgotPassService = (email) => __async(void 0, null, function* () {
+  let response = null;
+  const secret = process.env.SECRET_KEY;
+  const verifyEmail = yield veryfyEmailDatabase(email);
+  if (verifyEmail && secret) {
+    const user = verifyEmail.user;
+    let token = import_jsonwebtoken2.default.sign({ user }, secret, { expiresIn: "1h" });
+    token = encodeURIComponent(token);
+    const restEmail = `localhost:3000/resetPass/${token}`;
+    const data = yield sendEmail(verifyEmail.email, "Email teste", restEmail, verifyEmail.user);
     response = yield ok(data);
   } else {
     response = yield noContent();
@@ -646,6 +784,11 @@ var getProtegido = (req, res) => __async(void 0, null, function* () {
   const response = yield getProtegidoService(authHeader);
   res.status(response.statusCode).json(response.body);
 });
+var forgotPass = (req, res) => __async(void 0, null, function* () {
+  const email = req.params.email;
+  const response = yield forgotPassService(email);
+  res.status(response.statusCode).json(response.body);
+});
 var getMyAcount = (req, res) => __async(void 0, null, function* () {
   const authHeader = req.headers.authorization;
   const response = yield getMyAcountService(authHeader);
@@ -678,6 +821,7 @@ var deleteUser = (req, res) => __async(void 0, null, function* () {
 var router = (0, import_express.Router)();
 router.get("/login/protected", getProtegido);
 router.get("/login/myAcount", getMyAcount);
+router.get("/login/forgotPassword/:email", forgotPass);
 router.post("/login/create", createUser);
 router.post("/login/autentication", userAutentication);
 router.patch("/login/update/:user", updateUser);

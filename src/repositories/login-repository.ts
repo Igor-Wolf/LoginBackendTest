@@ -48,7 +48,7 @@ export const autenticateUser = async (value: UserAutenticationModel): Promise<Us
 
   if (result) {
     isMatch = await bcrypt.compare(value.passwordHash, result.passwordHash);
-    console.log(value.passwordHash, result.passwordHash)
+    
   }
 
 
@@ -76,6 +76,23 @@ export const autenticateUserSimple = async (value: String): Promise<UserModel | 
   } 
 
   return 
+
+}
+
+export const veryfyEmailDatabase = async (email: string | undefined): Promise<UserModel | undefined> => {
+  
+  const collection = await connectDatabase();
+  const filter = { email: email };
+  const result = await collection.findOne(filter);
+
+  if (result) {
+    
+    return result;
+
+  } 
+
+  return 
+    
 
 }
 
