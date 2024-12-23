@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { UserAutenticationModel } from "../models/user-autentication-model";
 import bcrypt from 'bcrypt'
 import { hashedPass } from "../utils/hashedPass";
+import { NewPasswordModel } from "../models/new-Password-model";
 
 
 
@@ -197,6 +198,36 @@ export const findAndModifyUser = async (user: string, body: UserModel, validEmai
     }
   } catch (error) {
     console.error("Error updating user:", error);
+    return { message: "error", error: error.message };
+  }
+};
+export const findAndModifyPassword = async (user: string, body: string) => {
+  const collection = await connectDatabase();
+  let result = null
+  
+  try {
+    const filter = { user: user };
+    const search = await collection.findOne(filter);
+    search.passwordHash = body
+    
+
+    
+    if (search) {
+      
+      // criptografando a senha
+      search.passwordHash =  await hashedPass(search.passwordHash)
+    
+      
+      result = await collection.replaceOne(filter, search);
+    }
+
+    if (result) {
+      return { message: "updated" };
+    } else {
+      return { message: "erro" };
+    }
+  } catch (error) {
+    console.error("Error updating password:", error);
     return { message: "error", error: error.message };
   }
 };

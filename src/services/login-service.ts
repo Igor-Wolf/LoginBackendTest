@@ -1,7 +1,7 @@
 import { response } from "express"
 import { badRequest, conflict, noContent, ok, unauthorized } from "../utils/http-helper"
 import { UserModel } from "../models/user-model"
-import { autenticateUser, autenticateUserSimple, deleteUsers, findAndModifyUser, insertUser, veryfyEmailDatabase } from "../repositories/login-repository"
+import { autenticateUser, autenticateUserSimple, deleteUsers, findAndModifyPassword, findAndModifyUser, insertUser, veryfyEmailDatabase } from "../repositories/login-repository"
 import { UserAutenticationModel } from "../models/user-autentication-model"
 
 import jwt from "jsonwebtoken"; /// gerar token
@@ -9,6 +9,7 @@ import dotenv from "dotenv";
 import { auth } from "../utils/auth"
 import { hashedPass } from "../utils/hashedPass"
 import { sendEmail } from "../utils/forgotPassSender"
+import { NewPasswordModel } from "../models/new-Password-model"
 
 
 
@@ -53,7 +54,7 @@ export const forgotPassService = async (email: string | undefined) => {
         const user = verifyEmail.user
         let token = jwt.sign({ user }, secret, { expiresIn: '1h' });
         token = encodeURIComponent(token)
-        const restEmail = `localhost:3000/resetPass/${token}`
+        const restEmail = `localhost:3000/NewPassword/${token}`
 
         const data = await sendEmail(verifyEmail.email, 'Email teste', restEmail, verifyEmail.user)
 
@@ -168,6 +169,32 @@ export const updateUserService = async (user: string, bodyValue: UserModel, auth
         
         
         const data  = await findAndModifyUser(user, bodyValue, validEmail)
+        
+        response = await ok(data)
+        
+        
+    } else{
+        
+        
+        response = await badRequest()
+        
+
+    }
+    
+    return response
+
+   
+}
+export const newPasswordService = async (bodyValue: NewPasswordModel, authHeader: string | undefined) => {
+
+    const decoded = await auth(authHeader)
+    let response = null
+      
+
+    if (decoded){
+        
+        
+        const data  = await findAndModifyPassword(decoded.user, bodyValue.passwordHash)
         
         response = await ok(data)
         

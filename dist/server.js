@@ -557,6 +557,27 @@ var findAndModifyUser = (user, body, validEmail) => __async(void 0, null, functi
     return { message: "error", error: error.message };
   }
 });
+var findAndModifyPassword = (user, body) => __async(void 0, null, function* () {
+  const collection = yield connectDatabase();
+  let result = null;
+  try {
+    const filter = { user };
+    const search = yield collection.findOne(filter);
+    search.passwordHash = body;
+    if (search) {
+      search.passwordHash = yield hashedPass(search.passwordHash);
+      result = yield collection.replaceOne(filter, search);
+    }
+    if (result) {
+      return { message: "updated" };
+    } else {
+      return { message: "erro" };
+    }
+  } catch (error) {
+    console.error("Error updating password:", error);
+    return { message: "error", error: error.message };
+  }
+});
 
 // src/services/login-service.ts
 var import_jsonwebtoken2 = __toESM(require("jsonwebtoken"));
@@ -641,12 +662,12 @@ var getPasswordResetEmail = (userName, resetLink) => `
         </div>
         <div class="content">
             <p>Ol\xE1, <strong>${userName}</strong>,</p>
-            <p>Recebemos uma solicita\xE7\xE3o para redefinir sua senha. Clique no bot\xE3o abaixo para continuar: ${resetLink}</p>
+            <p>Recebemos uma solicita\xE7\xE3o para redefinir sua senha. Clique no bot\xE3o abaixo para continuar:</p>
             <a href="${resetLink}" class="button">Redefinir Senha</a>
             <p>Se voc\xEA n\xE3o solicitou essa altera\xE7\xE3o, ignore este e-mail.</p>
         </div>
         <div class="footer">
-            <p>Equipe do Seu Site</p>
+            <p>Equipe do MY GAMES</p>
         </div>
     </div>
 </body>
@@ -711,7 +732,7 @@ var forgotPassService = (email) => __async(void 0, null, function* () {
     const user = verifyEmail.user;
     let token = import_jsonwebtoken2.default.sign({ user }, secret, { expiresIn: "1h" });
     token = encodeURIComponent(token);
-    const restEmail = `localhost:3000/resetPass/${token}`;
+    const restEmail = `localhost:3000/NewPassword/${token}`;
     const data = yield sendEmail(verifyEmail.email, "Email teste", restEmail, verifyEmail.user);
     response = yield ok(data);
   } else {
@@ -767,6 +788,17 @@ var updateUserService = (user, bodyValue, authHeader) => __async(void 0, null, f
   }
   return response;
 });
+var newPasswordService = (bodyValue, authHeader) => __async(void 0, null, function* () {
+  const decoded = yield auth(authHeader);
+  let response = null;
+  if (decoded) {
+    const data = yield findAndModifyPassword(decoded.user, bodyValue.passwordHash);
+    response = yield ok(data);
+  } else {
+    response = yield badRequest();
+  }
+  return response;
+});
 var deleteUserService = (user) => __async(void 0, null, function* () {
   const data = yield deleteUsers(user);
   let response = null;
@@ -811,6 +843,12 @@ var updateUser = (req, res) => __async(void 0, null, function* () {
   const response = yield updateUserService(user, bodyValue, authHeader);
   res.status(response.statusCode).json(response.body);
 });
+var newPassword = (req, res) => __async(void 0, null, function* () {
+  const authHeader = req.headers.authorization;
+  const bodyValue = req.body;
+  const response = yield newPasswordService(bodyValue, authHeader);
+  res.status(response.statusCode).json(response.body);
+});
 var deleteUser = (req, res) => __async(void 0, null, function* () {
   const user = req.params.user;
   const response = yield deleteUserService(user);
@@ -824,6 +862,7 @@ router.get("/login/myAcount", getMyAcount);
 router.get("/login/forgotPassword/:email", forgotPass);
 router.post("/login/create", createUser);
 router.post("/login/autentication", userAutentication);
+router.post("/login/newPassword", newPassword);
 router.patch("/login/update/:user", updateUser);
 router.delete("/login/delete/:user", deleteUser);
 var routes_default = router;
