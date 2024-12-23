@@ -58,8 +58,9 @@ export const getPasswordResetEmail = (userName: string, resetLink: string) => `
         </div>
         <div class="content">
             <p>Olá, <strong>${userName}</strong>,</p>
-            <p>Recebemos uma solicitação para redefinir sua senha. Clique no botão abaixo para continuar:</p>
+            <p>Recebemos uma solicitação para redefinir sua senha. Clique no botão abaixo para continuar: ${resetLink}</p>
             <a href="${resetLink}" class="button">Redefinir Senha</a>
+            <a href="www.google.com" class="button">Redefinir Google</a>
             <p>Se você não solicitou essa alteração, ignore este e-mail.</p>
         </div>
         <div class="footer">

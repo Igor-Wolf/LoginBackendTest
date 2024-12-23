@@ -662,8 +662,9 @@ var getPasswordResetEmail = (userName, resetLink) => `
         </div>
         <div class="content">
             <p>Ol\xE1, <strong>${userName}</strong>,</p>
-            <p>Recebemos uma solicita\xE7\xE3o para redefinir sua senha. Clique no bot\xE3o abaixo para continuar:</p>
+            <p>Recebemos uma solicita\xE7\xE3o para redefinir sua senha. Clique no bot\xE3o abaixo para continuar: ${resetLink}</p>
             <a href="${resetLink}" class="button">Redefinir Senha</a>
+            <a href="www.google.com" class="button">Redefinir Google</a>
             <p>Se voc\xEA n\xE3o solicitou essa altera\xE7\xE3o, ignore este e-mail.</p>
         </div>
         <div class="footer">
