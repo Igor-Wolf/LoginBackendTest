@@ -1,11 +1,12 @@
 import { Router } from "express"
-import { createUser, deleteUser, forgotPass, getMyAcount, getProtegido, newPassword, updateUser, userAutentication } from "./controllers/login-controller"
+import { autenticateAccountByEmail, createUser, deleteUser, forgotPass, getMyAcount, getProtegido, newPassword, updateUser, userAutentication } from "./controllers/login-controller"
 
 
 const router = Router()
 
 router.get("/login/protected", getProtegido)
 router.get("/login/myAcount", getMyAcount)
+router.get("/login/autenticateAccountEmail", autenticateAccountByEmail)
 
 
 router.get("/login/forgotPassword/:email", forgotPass)

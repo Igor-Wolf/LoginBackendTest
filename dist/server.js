@@ -578,6 +578,26 @@ var findAndModifyPassword = (user, body) => __async(void 0, null, function* () {
     return { message: "error", error: error.message };
   }
 });
+var findAndModifyActivity = (user) => __async(void 0, null, function* () {
+  const collection = yield connectDatabase();
+  let result = null;
+  try {
+    const filter = { user };
+    const search = yield collection.findOne(filter);
+    search.isActive = true;
+    if (search) {
+      result = yield collection.replaceOne(filter, search);
+    }
+    if (result) {
+      return { message: "updated" };
+    } else {
+      return { message: "erro" };
+    }
+  } catch (error) {
+    console.error("Error updating password:", error);
+    return { message: "error", error: error.message };
+  }
+});
 
 // src/services/login-service.ts
 var import_jsonwebtoken2 = __toESM(require("jsonwebtoken"));
@@ -713,6 +733,120 @@ var sendEmail = (to, subject, text, user) => __async(void 0, null, function* () 
   }
 });
 
+// src/utils/autenticateAccountSender.ts
+var import_nodemailer2 = __toESM(require("nodemailer"));
+
+// src/utils/autenticateAccountHTML.ts
+var getAutenticateAccount = (userName, resetLink) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autentica\xE7\xE3od e conta</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            color: #333;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .footer {
+            background-color: #f4f4f4;
+            color: #666;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>Autentica\xE7\xE3o da conta</h1>
+        </div>
+        <div class="content">
+            <p>Ol\xE1, <strong>${userName}</strong>!</p>
+            <p>Recebemos uma solicita\xE7\xE3o para autenticar sua conta. Clique no bot\xE3o abaixo para continuar: ${resetLink}</p>
+            <a href="${resetLink}" class="button">Autenticar Conta</a>
+            <p>Se voc\xEA n\xE3o solicitou isso, ignore este e-mail.</p>
+        </div>
+        <div class="footer">
+            <p>Equipe do MY GAMES</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+
+// src/utils/autenticateAccountSender.ts
+var transporter2 = import_nodemailer2.default.createTransport({
+  service: "gmail",
+  // Substitua pelo serviço de e-mail que você utiliza (e.g., Outlook, Yahoo)
+  auth: {
+    user: "programadorigorrb@gmail.com",
+    // Seu endereço de e-mail
+    pass: process.env.EMAIL_PASS
+    // Sua senha ou App Password
+  },
+  tls: {
+    rejectUnauthorized: false
+    // Permitir certificados autoassinados
+  }
+});
+var sendEmail2 = (to, subject, text, user) => __async(void 0, null, function* () {
+  try {
+    const mailOptions = {
+      from: '"My games" <programadorigorrb@gmail.com>',
+      // Remetente
+      to,
+      // Destinatário
+      subject,
+      // Assunto
+      html: getAutenticateAccount(user, text)
+      //text, // Texto do e-mail (pode adicionar HTML aqui também, com `html` em vez de `text`)
+    };
+    const info = yield transporter2.sendMail(mailOptions);
+    return {
+      message: `E-mail enviado com sucesso:'`
+    };
+  } catch (error) {
+    return {
+      message: `Erro ao enviar e-mail: ${error}`
+    };
+  }
+});
+
 // src/services/login-service.ts
 var getProtegidoService = (bodyValue) => __async(void 0, null, function* () {
   let response = null;
@@ -720,6 +854,18 @@ var getProtegidoService = (bodyValue) => __async(void 0, null, function* () {
   data = yield auth(bodyValue);
   if (data) {
     response = yield ok(data);
+  } else {
+    response = yield noContent();
+  }
+  return response;
+});
+var autenticateAccountByEmailService = (bodyValue) => __async(void 0, null, function* () {
+  let response = null;
+  let data = null;
+  data = yield auth(bodyValue);
+  if (data) {
+    const database = yield findAndModifyActivity(data.user);
+    response = yield ok(database);
   } else {
     response = yield noContent();
   }
@@ -769,9 +915,15 @@ var userAutenticationService = (bodyValue) => __async(void 0, null, function* ()
   const secret = process.env.SECRET_KEY;
   let response = null;
   let user = bodyValue.user;
-  if (data && secret) {
+  if (data && secret && data.isActive === true) {
     const token = import_jsonwebtoken2.default.sign({ user }, secret, { expiresIn: "1h" });
     response = yield ok(token);
+  } else if (data && secret && data.isActive === false) {
+    let token = import_jsonwebtoken2.default.sign({ user }, secret, { expiresIn: "1h" });
+    token = encodeURIComponent(token);
+    const restEmail = `localhost:3000/NewPassword/${token}`;
+    const mail = yield sendEmail2(data.email, "Email teste", restEmail, user);
+    response = yield conflict();
   } else {
     response = yield unauthorized();
   }
@@ -817,6 +969,11 @@ var getProtegido = (req, res) => __async(void 0, null, function* () {
   const response = yield getProtegidoService(authHeader);
   res.status(response.statusCode).json(response.body);
 });
+var autenticateAccountByEmail = (req, res) => __async(void 0, null, function* () {
+  const authHeader = req.headers.authorization;
+  const response = yield autenticateAccountByEmailService(authHeader);
+  res.status(response.statusCode).json(response.body);
+});
 var forgotPass = (req, res) => __async(void 0, null, function* () {
   const email = req.params.email;
   const response = yield forgotPassService(email);
@@ -860,6 +1017,7 @@ var deleteUser = (req, res) => __async(void 0, null, function* () {
 var router = (0, import_express.Router)();
 router.get("/login/protected", getProtegido);
 router.get("/login/myAcount", getMyAcount);
+router.get("/login/autenticateAccountEmail", autenticateAccountByEmail);
 router.get("/login/forgotPassword/:email", forgotPass);
 router.post("/login/create", createUser);
 router.post("/login/autentication", userAutentication);

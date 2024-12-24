@@ -1,7 +1,7 @@
 import { response } from "express"
 import { badRequest, conflict, noContent, ok, unauthorized } from "../utils/http-helper"
 import { UserModel } from "../models/user-model"
-import { autenticateUser, autenticateUserSimple, deleteUsers, findAndModifyPassword, findAndModifyUser, insertUser, veryfyEmailDatabase } from "../repositories/login-repository"
+import { autenticateUser, autenticateUserSimple, deleteUsers, findAndModifyActivity, findAndModifyPassword, findAndModifyUser, insertUser, veryfyEmailDatabase } from "../repositories/login-repository"
 import { UserAutenticationModel } from "../models/user-autentication-model"
 
 import jwt from "jsonwebtoken"; /// gerar token
@@ -10,6 +10,7 @@ import { auth } from "../utils/auth"
 import { hashedPass } from "../utils/hashedPass"
 import { sendEmail } from "../utils/forgotPassSender"
 import { NewPasswordModel } from "../models/new-Password-model"
+import { sendEmail2 } from "../utils/autenticateAccountSender"
 
 
 
@@ -39,6 +40,34 @@ export const getProtegidoService = async (bodyValue: string | undefined) => {
     return response
 
 }
+export const autenticateAccountByEmailService = async (bodyValue: string | undefined) => {
+
+    let response = null
+    let data = null   
+
+    data = await auth(bodyValue) /// verificação do token
+    
+    if (data){
+        const database  = await findAndModifyActivity(data.user)
+        response = await ok(database)
+        
+
+    } else{
+        
+
+        response = await noContent()
+
+    }
+    
+    return response
+
+}
+
+
+
+
+
+
 export const forgotPassService = async (email: string | undefined) => {
 
     let response = null
@@ -138,17 +167,34 @@ export const userAutenticationService = async (bodyValue: UserAutenticationModel
     let response = null
     
     let user = bodyValue.user
+    
 
 
 
-    if (data && secret) {
+
+    if (data && secret && data.isActive === true) {
         //gerar o token para futuros gets 
         const token = jwt.sign({ user }, secret, { expiresIn: '1h' });
         response = await ok(token)
     }
-    else {
+    else if (data && secret && data.isActive === false) {
         
+        
+        let token = jwt.sign({ user }, secret, { expiresIn: '1h' });
+        token = encodeURIComponent(token)
+        const restEmail = `localhost:3000/NewPassword/${token}`
+
+        const mail = await sendEmail2(data.email, 'Email teste', restEmail, user)
+
+
+        response = await conflict()
+
+    }
+    else {
+
+
         response = await unauthorized()
+
     }
 
     return response

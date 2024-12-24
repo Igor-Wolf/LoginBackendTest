@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 import { UserAutenticationModel } from "../models/user-autentication-model";
 import bcrypt from 'bcrypt'
 import { hashedPass } from "../utils/hashedPass";
-import { NewPasswordModel } from "../models/new-Password-model";
 
 
 
@@ -218,6 +217,33 @@ export const findAndModifyPassword = async (user: string, body: string) => {
       search.passwordHash =  await hashedPass(search.passwordHash)
     
       
+      result = await collection.replaceOne(filter, search);
+    }
+
+    if (result) {
+      return { message: "updated" };
+    } else {
+      return { message: "erro" };
+    }
+  } catch (error) {
+    console.error("Error updating password:", error);
+    return { message: "error", error: error.message };
+  }
+};
+export const findAndModifyActivity = async (user: string) => {
+  const collection = await connectDatabase();
+  let result = null
+  
+  try {
+    const filter = { user: user };
+    const search = await collection.findOne(filter);
+    search.isActive = true
+    
+
+    
+    if (search) {
+      
+       
       result = await collection.replaceOne(filter, search);
     }
 
