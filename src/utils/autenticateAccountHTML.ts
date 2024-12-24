@@ -58,7 +58,7 @@ export const getAutenticateAccount = (userName: string, resetLink: string) => `
         </div>
         <div class="content">
             <p>Olá, <strong>${userName}</strong>!</p>
-            <p>Recebemos uma solicitação para autenticar sua conta. Clique no botão abaixo para continuar: ${resetLink}</p>
+            <p>Recebemos uma solicitação para autenticar sua conta. Clique no botão abaixo para continuar:</p>
             <a href="${resetLink}" class="button">Autenticar Conta</a>
             <p>Se você não solicitou isso, ignore este e-mail.</p>
         </div>

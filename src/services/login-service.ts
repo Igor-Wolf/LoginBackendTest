@@ -83,7 +83,7 @@ export const forgotPassService = async (email: string | undefined) => {
         const user = verifyEmail.user
         let token = jwt.sign({ user }, secret, { expiresIn: '1h' });
         token = encodeURIComponent(token)
-        const restEmail = `localhost:3000/NewPassword/${token}`
+        const restEmail = `https://login-model-one.vercel.app/NewPassword/${token}`
 
         const data = await sendEmail(verifyEmail.email, 'Email teste', restEmail, verifyEmail.user)
 
@@ -182,7 +182,7 @@ export const userAutenticationService = async (bodyValue: UserAutenticationModel
         
         let token = jwt.sign({ user }, secret, { expiresIn: '1h' });
         token = encodeURIComponent(token)
-        const restEmail = `localhost:3000/NewPassword/${token}`
+        const restEmail = `https://login-model-one.vercel.app/AutenticateAccount/${token}`
 
         const mail = await sendEmail2(data.email, 'Email teste', restEmail, user)
 

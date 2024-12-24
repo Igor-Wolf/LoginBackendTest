@@ -682,9 +682,9 @@ var getPasswordResetEmail = (userName, resetLink) => `
         </div>
         <div class="content">
             <p>Ol\xE1, <strong>${userName}</strong>,</p>
-            <p>Recebemos uma solicita\xE7\xE3o para redefinir sua senha. Clique no bot\xE3o abaixo para continuar: ${resetLink}</p>
+            <p>Recebemos uma solicita\xE7\xE3o para redefinir sua senha. Clique no bot\xE3o abaixo para continuar:</p>
             <a href="${resetLink}" class="button">Redefinir Senha</a>
-            <a href="www.google.com" class="button">Redefinir Google</a>
+            
             <p>Se voc\xEA n\xE3o solicitou essa altera\xE7\xE3o, ignore este e-mail.</p>
         </div>
         <div class="footer">
@@ -797,7 +797,7 @@ var getAutenticateAccount = (userName, resetLink) => `
         </div>
         <div class="content">
             <p>Ol\xE1, <strong>${userName}</strong>!</p>
-            <p>Recebemos uma solicita\xE7\xE3o para autenticar sua conta. Clique no bot\xE3o abaixo para continuar: ${resetLink}</p>
+            <p>Recebemos uma solicita\xE7\xE3o para autenticar sua conta. Clique no bot\xE3o abaixo para continuar:</p>
             <a href="${resetLink}" class="button">Autenticar Conta</a>
             <p>Se voc\xEA n\xE3o solicitou isso, ignore este e-mail.</p>
         </div>
@@ -879,7 +879,7 @@ var forgotPassService = (email) => __async(void 0, null, function* () {
     const user = verifyEmail.user;
     let token = import_jsonwebtoken2.default.sign({ user }, secret, { expiresIn: "1h" });
     token = encodeURIComponent(token);
-    const restEmail = `localhost:3000/NewPassword/${token}`;
+    const restEmail = `https://login-model-one.vercel.app/NewPassword/${token}`;
     const data = yield sendEmail(verifyEmail.email, "Email teste", restEmail, verifyEmail.user);
     response = yield ok(data);
   } else {
@@ -921,7 +921,7 @@ var userAutenticationService = (bodyValue) => __async(void 0, null, function* ()
   } else if (data && secret && data.isActive === false) {
     let token = import_jsonwebtoken2.default.sign({ user }, secret, { expiresIn: "1h" });
     token = encodeURIComponent(token);
-    const restEmail = `localhost:3000/NewPassword/${token}`;
+    const restEmail = `https://login-model-one.vercel.app/AutenticateAccount/${token}`;
     const mail = yield sendEmail2(data.email, "Email teste", restEmail, user);
     response = yield conflict();
   } else {
