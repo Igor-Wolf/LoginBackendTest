@@ -550,7 +550,7 @@ var findAndModifyUser = (user, body, validEmail) => __async(void 0, null, functi
     if (result && validEmail) {
       return { message: "updated" };
     } else {
-      return { message: "erro na cria\xE7\xE3o email j\xE1 existente" };
+      return { message: "erro" };
     }
   } catch (error) {
     console.error("Error updating user:", error);
@@ -681,7 +681,7 @@ var getPasswordResetEmail = (userName, resetLink) => `
             <h1>Recupera\xE7\xE3o de Senha</h1>
         </div>
         <div class="content">
-            <p>Ol\xE1, <strong>${userName}</strong>,</p>
+            <p>Ol\xE1, <strong>${userName}</strong>!</p>
             <p>Recebemos uma solicita\xE7\xE3o para redefinir sua senha. Clique no bot\xE3o abaixo para continuar:</p>
             <a href="${resetLink}" class="button">Redefinir Senha</a>
             
@@ -940,7 +940,13 @@ var updateUserService = (user, bodyValue, authHeader) => __async(void 0, null, f
   let response = null;
   if (decoded) {
     const data = yield findAndModifyUser(user, bodyValue, validEmail);
-    response = yield ok(data);
+    if (data.message === "updated") {
+      response = yield ok(data);
+    } else if (data.message === "erro") {
+      response = yield conflict();
+    } else {
+      response = yield badRequest();
+    }
   } else {
     response = yield badRequest();
   }

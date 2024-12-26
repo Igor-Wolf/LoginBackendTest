@@ -193,7 +193,7 @@ export const findAndModifyUser = async (user: string, body: UserModel, validEmai
     if (result && validEmail) {
       return { message: "updated" };
     } else {
-      return { message: "erro na criação email já existente" };
+      return { message: "erro" };
     }
   } catch (error) {
     console.error("Error updating user:", error);

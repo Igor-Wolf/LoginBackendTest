@@ -57,7 +57,7 @@ export const getPasswordResetEmail = (userName: string, resetLink: string) => `
             <h1>Recuperação de Senha</h1>
         </div>
         <div class="content">
-            <p>Olá, <strong>${userName}</strong>,</p>
+            <p>Olá, <strong>${userName}</strong>!</p>
             <p>Recebemos uma solicitação para redefinir sua senha. Clique no botão abaixo para continuar:</p>
             <a href="${resetLink}" class="button">Redefinir Senha</a>
             

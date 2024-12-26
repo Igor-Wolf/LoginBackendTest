@@ -226,7 +226,21 @@ export const updateUserService = async (user: string, bodyValue: UserModel, auth
         
         const data  = await findAndModifyUser(user, bodyValue, validEmail)
         
-        response = await ok(data)
+        if (data.message === "updated") {
+            
+            response = await ok(data)
+
+        }
+        else if (data.message === "erro") {
+
+            response = await conflict()
+
+        }
+        else {
+            response = await badRequest()
+        }
+
+
         
         
     } else{
