@@ -173,9 +173,19 @@ export const userAutenticationService = async (bodyValue: UserAutenticationModel
 
 
     if (data && secret && data.isActive === true) {
-        //gerar o token para futuros gets 
-        const token = jwt.sign({ user }, secret, { expiresIn: '1h' });
-        response = await ok(token)
+
+
+        if (!bodyValue.remember) {
+            
+            //gerar o token para futuros gets 
+            const token = jwt.sign({ user }, secret, { expiresIn: '1h' });
+            response = await ok(token)
+        } else {
+            //gerar o token para futuros gets 
+            const token = jwt.sign({ user }, secret);
+            response = await ok(token)
+
+        }
     }
     else if (data && secret && data.isActive === false) {
         

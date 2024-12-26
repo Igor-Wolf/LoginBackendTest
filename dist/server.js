@@ -916,8 +916,13 @@ var userAutenticationService = (bodyValue) => __async(void 0, null, function* ()
   let response = null;
   let user = bodyValue.user;
   if (data && secret && data.isActive === true) {
-    const token = import_jsonwebtoken2.default.sign({ user }, secret, { expiresIn: "1h" });
-    response = yield ok(token);
+    if (!bodyValue.remember) {
+      const token = import_jsonwebtoken2.default.sign({ user }, secret, { expiresIn: "1h" });
+      response = yield ok(token);
+    } else {
+      const token = import_jsonwebtoken2.default.sign({ user }, secret);
+      response = yield ok(token);
+    }
   } else if (data && secret && data.isActive === false) {
     let token = import_jsonwebtoken2.default.sign({ user }, secret, { expiresIn: "1h" });
     token = encodeURIComponent(token);
